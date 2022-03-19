@@ -18,6 +18,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+
+        <activity
+            android:name=".ch1.Ch1_MainActivity"
+            android:exported="true">
+        </activity>
     </application>
 
 </manifest>
