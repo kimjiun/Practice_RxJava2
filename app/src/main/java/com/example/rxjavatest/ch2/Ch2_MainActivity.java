@@ -22,16 +22,14 @@ public class Ch2_MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.ch1_activity_main);
+        setContentView(R.layout.activity_main);
 
         //ex1();
         //ex2();
 
         //ex3();
         //ex4();
-        //ex5();
-
-        ex6();
+        ex5();
     }
 
     private void ex1(){
