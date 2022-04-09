@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch3;
+package com.example.rxjavatest.ch5;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -21,7 +21,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
-public class Ch3_MainActivity extends AppCompatActivity {
+public class Ch5_MainActivity extends AppCompatActivity {
     @BindView(R.id.hello_world_salute)
     TextView helloText;
 
@@ -37,6 +37,12 @@ public class Ch3_MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
+        //ex1();
+        ex2();
+        //setStocks();
+    }
+
+    private void setStocks(){
         recyclerView.setHasFixedSize(true);
 
         layoutManager = new LinearLayoutManager(this);
@@ -63,6 +69,24 @@ public class Ch3_MainActivity extends AppCompatActivity {
                     Log.d("APP", "New update " + stockUpdate.getStockSymbol());
                     stockDataAdapter.add(stockUpdate);
                 });
+    }
+
+    private void ex1(){
+        Observable.just("One", "Two", "Three")
+                .subscribeOn(Schedulers.single())
+                .doOnNext(i -> log("doOnNext", i))
+                .subscribeOn(Schedulers.newThread())
+                .doOnNext(i -> log("doOnNext", i))
+                .subscribeOn(Schedulers.io())
+                .subscribe(i -> log("subscribe", i));
+    }
+
+    private void ex2(){
+        Observable.just("One", "Two", "Three")
+                .doOnNext(i -> log("doOnNext", i))
+                .observeOn(Schedulers.newThread())
+                .doOnNext(i -> log("doOnNext", i))
+                .subscribe(i -> log("subscribe", i));
     }
 
     private void log(Throwable throwable) {

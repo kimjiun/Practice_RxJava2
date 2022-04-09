@@ -1,0 +1,92 @@
+* rxjava는 결과에 반응하는것
+	- 어떤 출처에서 비롯된 아이템 또는 오류일수 있다
+ 
+* rxjava 기본요소
+	- 옵저버블 : 데이터의 출처(source)
+	- 서브스크립션(구독) : 데이터를 수신하는 옵저버블에 대해 활성화된 핸들
+	- 스케줄러 : (스레드에서) 데이터가 처리되는 위치를 정의하는 방법
+
+	* 옵저버블
+		간단하게 .just() 메소드를 이용해 생성 가능
+		데이터 전송은 .subscribe()를 호출
+		콜드 옵저버블 : 구독자가 있기 전까지는 옵저버블로 아이템을 전송하지 않겠다
+		핫 옵저버블 : 내부적으로 아이템을 생성(전송)한다 생성된 상태나 정보들이 계속해서 업데이트됨.
+		
+	* 디스포저블
+		옵저버블의 생애 주기를 제어하기위해서 사용 - 메모리 누수 방지
+		Disposable disposable = Observable.just("F item", "S item").subscribe();
+		
+		두개의 메소드 존재 dispose() : 구독 취소 / isDisposed() : 구독이 활성화 상태인지 점검
+		취소된 구독은 다시 사용할 수 없다.
+		
+		CompositeDiposable로 그룹화 가능 : 액티비티 제거할때처럼 많은 옵저버블을 한번에 취소
+		Disposable disposable = new CompositeDiposable(
+			Observable.just("F1 item", "S1 item").subscribe();
+			Observable.just("F2 item", "S2 item").subscribe();
+			Observable.just("F3 item", "S3 item").subscribe();
+		);
+		
+	* 스케줄러
+		구독이 실행될 스레드를 선택한다
+		.subscribeOn() 호출을 하면서 설정
+		
+		일반적으로 사용되는 주요 스케줄러
+			Schedulers.io() / Schedulers.computation() / Schedulers.newThread() / AndroidSchedulers.mainThread()
+
+		백그라운드에서 긴시간동안 동작한 프로세스의 결과를 메인 스레드에 보여줘야하는 경우 observeOn() 사용
+	
+
+* 플로어블
+	옵저버블의 특별한 타입으로 간주(내부적으로는 아님)
+	출처로부터 다음단계중 일부가 처리하는 것보다 더 빨리 방출된 아이템들을 처리가능
+
+	처리할수 없는 아이템을 다루는 방법을 정하지 않으면 MissingBackpressureException을 던짐
+	
+	* 아이템 버리기
+		스트리밍을 받아 처리하는 단계에서 원천 옵저버블의 속도를 따라잡지 못할때 버림
+		버려도 문제 없을때만 사용가능, 방출되는 데이터의 가치를 처음부터 신경써야함
+		
+		observable.toFlowable(BackpressureStrategy.DROP)
+		observable.toFlowable(BackpressureStrategy.MISSING).onBackpressureDrop()
+			- 아이템을 아래로 내려보내지못하면 즉시 버린다
+			- 플로어 큐 128까지만 사용 
+		
+		observable.toFlowable(BackpressureStrategy.MISSING).sample(10, TimeUnit.MILLISECONDS)
+			- 주기적으로 아이템을 방출하고 사용가능한 마지막값만 취함
+			- 10 밀리초(틱)마다 값 하나씩만 찍음 / 틱 사이 이외의 모든값은 버린다.
+			
+	* 마지막 아이템 유지하기
+		다운스트림으로 전송되는 아이템을 처리할 수 없을 떄, 앱은 처리가능할때까지 갑을 방출하는것을 멈춘다
+		멈춰있는동안 넘어오는 모든값을 버리면서 나머지 값만 남겨두고 처리할 상황이되면 마지막으로 저장된 메시지를 전송
+		
+		observable.toFlowable(BackpressureStrategy.LATEST)
+		observable.toFlowable(BackpressureStrategy.MISSING).onBackpressureDrop()
+		
+		observable.toFlowable(BackpressureStrategy.MISSING).debounce(10, TimeUnit.MILLISECONDS)
+			- 특정 간격에서 마지막 값을 주기적으로 가져온다.
+			
+	* 버퍼링
+		방출, 소비 속도가 다르면 좋지않음 / 컨슈머중 하나에서 일시적인 속도 둔화라면 문제없이 동작
+		observable.toFlowable(BackpressureStrategy.BUFFER)
+		observable.toFlowable(BackpressureStrategy.MISSING).onBackpressureBuffer()
+		
+		observable.toFlowable(BackpressureStrategy.MISSING).buffer(10) - 버퍼에 특정 수치 지정
+	
+	
+	
+* Completable, Single, Maybe 타입
+	* Completable
+		미래에 완료될 결과가 없는 행위를 나타낸다
+		onComplete와 onError 두가지 타입의 행위만 처리
+	
+	* Single
+		옵저버블(플로어블)과 비슷하지만 스트림 대신에 하나의 아이템을 반환한다.
+		
+	* Maybe
+		어떠한 값의 반환 없이 완료할 수 있는 행위를 의미, 싱글처럼 아이템을 반환가능
+	
+	
+
+	
+	
+	

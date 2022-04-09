@@ -1,6 +1,4 @@
-package com.example.rxjavatest.ch3.yahoo.json;
-
-import java.util.List;
+package com.example.rxjavatest.yahoo.json;
 
 public class YahooStockResults {
     private YahooStockQuoteResponse quoteResponse;

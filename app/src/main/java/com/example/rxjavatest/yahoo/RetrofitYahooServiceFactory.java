@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch3.yahoo;
+package com.example.rxjavatest.yahoo;
 
 
 import okhttp3.OkHttpClient;

@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch3.yahoo.json;
+package com.example.rxjavatest.yahoo.json;
 
 import java.util.List;
 

@@ -1,6 +1,6 @@
-package com.example.rxjavatest.ch3.yahoo;
+package com.example.rxjavatest.yahoo;
 
-import com.example.rxjavatest.ch3.yahoo.json.YahooStockResults;
+import com.example.rxjavatest.yahoo.json.YahooStockResults;
 
 import io.reactivex.Single;
 import retrofit2.http.GET;
@@ -8,7 +8,7 @@ import retrofit2.http.Headers;
 import retrofit2.http.Query;
 
 public interface YahooService {
-    String APIKEY = "Your Key";
+    String APIKEY = "IxNpQ9Gs4j9QmS2wGnbcLaROHmt33oZE3CtbKnE7";
 
     @Headers("X-API-KEY: " + APIKEY)
     @GET("quote?format=json")

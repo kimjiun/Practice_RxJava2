@@ -1,0 +1,47 @@
+* SQLite를 StorIO 라이브러리를 사용해서 다룸
+
+* 스케줄러 타입
+	* 싱글 : Schedulers.single()
+		단일 스레드, 메인 스레드 대신 사용가능, 일반적으로 사용안함
+		
+	* 트램펄린 : Schedulers.trampoline()
+		현재 스레드에서 코드를 실행, 현재 스레드의 큐에 실행될 코드블록을 추가하는 식
+		.observeOn() 및 .subscribeOn() 에서 사용하는 경우 옵저버블의 기본동작을 변경하지 않음 : No-Operation
+		커스텀 옵저버블을 만들때 주로 고급 사용을 위해 예약돼 있다. (예) 재귀코드 호출시 stackoverflow 예외를 피하는것
+
+	* 뉴스레드 : Schedulers.newThread()
+		각 옵저버블이 활성 상태가 되면 새 스레드를 만든다.
+		스레드 생성 수에 제한을 두지않기 때문에 옵저버블이 많을경우 사용 자제
+		
+	* IO : Schedulers.io()
+		네트워크 요청, 파일 시스템 접근 또는 안드로이드의 콘텐트 리졸버와 같은 IO 관련 작업 부하에 적합함
+		워커(스레드)풀이 지원해줌, 초기에 풀은 한개의 워커로 시작 사용가능할때 옵저버블간에 재사용, 없으면 새로 생성
+		사용하지 않은 워커는 60초후에 제거됨
+
+	* 컴퓨테이션 : Schedulers.computation()
+		워커풀에 의해 지원 그러나 풀크기는 시스템에서 사용할수있는 코어 수로 고정, 작업이 많으면 대기해야됨
+		상대적으로 빠르게 계산되고 메인스레드에서 완료해야 할때 매우 적합 - 이벤트 루프, 버스, UI 이벤트처리, 수학 계산 등
+		
+	* 이그제큐터 스케줄러 : 
+		Executors 클래스로 생성된 커스텀 풀을 사용하기 위해 만들어짐, 아래와 같이 사용
+		
+		final ExecutorService executor = Executors.newFixedThreadPool(10);
+		final Scheduler pooledScheduler = Schedulers.from(executor);
+		.subscribeOn(pooledScheduler)
+		
+		옵저버블을 많이 만들 가능성이 있는경우 IO 스케줄러를 대체할 수 있는 제한된 워커풀을 만드는데 사용
+		
+	* 안드로이드 스케줄러 : AndroidSchedulers.mainThread()
+		rxandroid 라이브러리에 존재, 코드의 실행을 안드로이드의 메인 스레드로 되돌려 보내는것
+		리턴된 결과는 UI에 표시되어야 한다. .observeOn() 호출에서 사용
+
+* 스케줄러 사용
+	* subscribeOn
+		원천 옵저버블 아이템을 방출하기로 되어있는 스케줄러를 수정
+		subscribeOn을 여러번 호출할 경우 처음 호출한것만 효과가 있음
+		-> Ch5_MainActivity의 ex1 : 오직 처음 호출한 싱글 스케줄러만 적용됨
+
+
+	* observeOn
+		호출될 때마다 코드가 실행되는 아래쪽스레드가 변경된다.
+		-> Ch5_MainActivity의 ex2 : 첫 doOnNext 블록은 메인스레드에서, 그 뒤는 뉴스레드 스케줄러에서 실행됨

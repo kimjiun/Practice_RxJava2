@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch3;
+package com.example.rxjavatest.ch5;
 
 import com.example.rxjavatest.yahoo.json.YahooStockResult;
 

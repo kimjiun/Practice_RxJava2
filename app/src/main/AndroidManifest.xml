@@ -30,6 +30,7 @@
             android:exported="true">
         </activity>
         <activity android:name=".ch3.Ch3_MainActivity" />
+        <activity android:name=".ch5.Ch5_MainActivity" />
     </application>
 
 </manifest>
