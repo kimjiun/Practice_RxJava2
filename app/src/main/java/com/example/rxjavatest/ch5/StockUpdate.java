@@ -11,6 +11,7 @@ public class StockUpdate implements Serializable {
     private final String stockSymbol;
     private final BigDecimal price;
     private final Date date;
+    private Integer id;
 
     public StockUpdate(String stockSymbol, BigDecimal price, Date date) {
         this.stockSymbol = stockSymbol;
@@ -28,6 +29,14 @@ public class StockUpdate implements Serializable {
 
     public Date getDate() {
         return date;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public static StockUpdate create(YahooStockResult r) {
