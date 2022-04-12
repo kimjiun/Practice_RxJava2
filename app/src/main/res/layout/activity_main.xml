@@ -14,6 +14,16 @@
         android:layout_margin="16dp"
         android:text="" />
 
+    <TextView
+        android:id="@+id/no_data_available"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="We are sorry, but we couldn't load any data."
+        android:textAlignment="center"
+        android:textSize="26sp"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/stock_updates_recycler_view"
         android:layout_width="match_parent"

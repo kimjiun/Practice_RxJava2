@@ -1,0 +1,101 @@
+* 인터넷 연결이 안될경우 SQLite에 저장된 데이터를 불러옴
+
+*RxJava의 예외처리
+	예외처리 구현은 주로 doOnError() 나 onExceptionResumeNext() 같은 메소드를 사용
+	
+	* subscribe() 사용
+		오류를 처리하는 가장 간단하고 일반적인 방법
+		
+		Observable.just("One")
+                .doOnNext(i -> {throw new RuntimeException();})
+                .subscribe(i -> {
+                    log("subscribe", i);
+                    }, throwable -> {log(throwable);}
+                );
+				
+		Observable.just("One")
+                .doOnNext(i -> {throw new RuntimeException("Very wrong");})
+                .subscribe(i -> log("subscribe", i), this::log);
+		* 예외가 발생하지만 앱이 종료되지 않고 이를 로그로 출력 
+				
+	* onExceptionResumeNext() 사용
+		예외 발생 후 다른 옵저버블에서 흐름 처리를 복원하는 좋은 방법
+		원본이 실패한 경우 백업 옵저버블에 플러그인하는 메커니즘으로 사용
+		
+		Observable.<String>error(new RuntimeException("Crash!")) // 예외를 던지는 빠른방법
+                .onExceptionResumeNext(Observable.just("Second")) // 예외 발생시 처리 시퀀스
+                .subscribe(i -> {
+                            log("subscribe", i);
+                        }, e -> log("subscribe"));
+		* 로그에 예외가 표시되지 않고 두번째 아이템이 정상적으로 처리됨 
+		
+	* doOnError() 사용
+		.subscribe()에 도달하지 않은 오류를 가로채기 위해 사용
+		안드로이드 UI에 알림을 표시하거나 일반적으로 실패한 것을 기록해야할때 매우 유용함
+		
+		Observable.<String>error(new RuntimeException("Crash!"))
+                .doOnError(e -> log("doOnError", e))
+                .onExceptionResumeNext(Observable.just("Second"))
+                .subscribe(i -> {
+                    log("subscribe", i);
+                }, e -> log("subscribe"));
+		* 로그에 예외가 표시되고 두번째 아이템이 정상적으로 처리됨 
+		
+	* 기타 오류 처리 방법
+		1. onErrorResumeNext()
+			onExceptionResumeNext()는 java.lang.Exception 유형과 이것의 서브클래스인 throwable만 처리하지만
+			onErrorResumeNext()는 java.lang.Throwable 및 java.lang.Error를 잡을수 있음
+			OutOfMemoryError와 같은 시스템 오류를 잡는데 도움이 되는 더 일반적인 핸들러
+		
+		2. onErrorReturn
+			onErrorResumeNext()와 비슷한 방식으로 동작, 
+			흐름을 재개하기 위해 옵저버블을 사용하는 대신 옵저버블에서 래핑되지 않은 값을 사용
+			
+		3. onErrorReturnItem
+			onErrorReturn()과 비슷하지만 더 간단, 옵저버블이 생성된 시점에 지정된 상수가 반환된다.
+	
+	* 안드로이드 UI의 오류 표시
+		에러 텍스트뷰 또는 토스트 메세지를 보여준다
+			.doOnError(error -> {
+				log("doOnError", "error");
+				Toast.makeText(this, "We couldn't reach internet - falling back to local data",
+						Toast.LENGTH_SHORT)
+						.show();
+			})
+			.observeOn(Schedulers.io())
+			
+	* 중앙 집중식 에러 로깅
+		각 subscribe() 블록에 자체 오류 처리 코드가 있음 지저분함 -> 유지보수를 위해 오류 처리를 위한 핸들러 클래스를 구현
+		
+		* 중앙 처리기
+			Consumer<Throwable> 인터페이스를 구현
+			
+			Observable.<String>error(new Error("Crash!"))
+                .doOnError(ErrorHandler.get())
+                .subscribe(i -> {
+                    log("subscribe", i);
+                }, ErrorHandler.get());
+				
+		* RxJava 플러그인 사용
+			옵저버블 흐름이 제공하는 메커니즘에 잡히지 않은 모든 예외를 위한 전역 핸들러를 설정
+			RxJavaPlugins.setErrorHandler(ErrorHandler.get());
+			
+* StorIO로 SQLite 데이터 읽기
+	* 리졸버 얻기
+		GetResolver가 필요
+		
+		public StockUpdate mapFromCursor(Cursor cursor) {
+			final int id = cursor.getInt(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.ID));
+			final long dateLong = cursor.getLong(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.DATE));
+			final long priceLong = cursor.getLong(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.PRICE));
+			final String stockSymbol = cursor.getString(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.STOCK_SYMBOL));
+			
+			Date date = getDate(dateLong);
+			BigDecimal price = getPrice(priceLong);
+			
+			final StockUpdate stockUpdate = new StockUpdate(stockSymbol, price, date);
+			stockUpdate.setId(id);
+			return stockUpdate;
+		}
+		
+		각 row의 컬럼들 값을 가져오고 StockUpdate 객체에 넣어서 반환

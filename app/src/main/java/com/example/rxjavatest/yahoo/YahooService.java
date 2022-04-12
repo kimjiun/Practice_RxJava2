@@ -8,7 +8,7 @@ import retrofit2.http.Headers;
 import retrofit2.http.Query;
 
 public interface YahooService {
-    String APIKEY = "YOUR KEY";
+    String APIKEY = "IxNpQ9Gs4j9QmS2wGnbcLaROHmt33oZE3CtbKnE7";
 
     @Headers("X-API-KEY: " + APIKEY)
     @GET("quote?format=json")

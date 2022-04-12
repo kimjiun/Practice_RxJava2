@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch5.storio;
+package com.example.rxjavatest.ch6.storio;
 
 public class StockUpdateTable {
     public static final String TABLE = "stock_updates";
