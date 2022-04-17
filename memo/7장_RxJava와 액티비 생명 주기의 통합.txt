@@ -1,0 +1,88 @@
+* 안드로이드 생명 주기와의 통합을 통해 구독과 옵저버블을 통제하여 메모리 누수 방지
+	
+* 안드로이드 생명 주기
+	1. onCreate() : 액티비티 설정, 뷰 설정, 종속성, 매개 변수 초기화/파싱
+	2. onStart() : 인터랙티브 작업 초기화, 데이터를 가져오는 옵저버블 구독을 시작하기 좋음
+	3. onResume() : 액티비티가 포커스를 얻으면 호출
+	4. onPause() : 액티비티가 포커스를 잃을때 호출, onResume()에서 시작된 항목을 중지
+	5. onStop() : 액티비티가 화면에서 사라지거나, 완전히 가려질때 호출, onStart()에서 시작된 항목을 중지
+	6. onDestroy() : onCreate()에서 시작된 항목을 중지
+	
+	* 액티비티가 파괴되고 생성되는 경우
+		1. 가로 세로 방향 전환
+		2. 시스템 언어 변경
+		3. 여러 액티비티 또는 앱 구성에서 활동 공간의 크기가 조정될때
+		4. 하드웨어 키보드가 튀어나올때
+		* 호출 순서 : onPause -> onStop -> onDestroy -> onCreate -> onStart -> onResume
+
+* 리소스 누수
+	* 메모리 누수
+		사용되지 않는 메모리 블록에 여전히 참조를 가리키는 메모리 블록이 있으면 GC에서 회수할수 없음
+		액티비티가 파괴된 후 액티비티 인스턴스를 여전히 가리키는 전역 참조가 있는경우 주로 발생
+		* static 변수를 주의해서 사용해야함
+		
+	* 옵저버블 누수
+		this 참조를 통해 액티비티에 강력한 참조를 유지할 경우 옵저버블과 구독이 활성화돼 있는 동안 액티비티가 GC에 의해
+		절대 처리될수 없으므로 수동으로 정리해야한다. 옵저버블은 액티비티에 의해 소유되지 않음. 현재 이를 실행중인 스레드가 소유
+		
+	* 장치의 구성이 변경될 때 액티비티가 붕괴되고 다시 생성될수 있기 때문에 onCreate()는 액티비티를 변경하지 않아도 여러번 호출됨
+	  따라서 onCreate() 블록에 구독이 있다면 누수될 가능성이 높음
+	  
+* 구독 정리
+	* 구독은 메모리와 스레드 누수를 유발할 수 있어 정리해야한다. 그러나 모든 구독을 수동으로 파기하거나 취소할 필요는 없음
+	
+	* Disposable 사용
+		onCreate에서 옵저버블과 구독을 생성한 경우 onDestroy에서 disposable.dispose();
+		
+        Disposable disposable = Observable.interval(1, TimeUnit.SECONDS)
+                .subscribe();
+				
+        if(disposable != null){
+            disposable.dispose();
+        }
+		
+	* CompositeDisposable 사용
+		여러 디스포저블에 대한 참조를 유지, 모든 디스포저블에 대한 구독을 취소할 수 있음
+		
+		CompositeDisposable disposable = new CompositeDisposable();
+        
+        Disposable disposable1 = Observable.interval(1, TimeUnit.SECONDS)
+                .subscribe();
+        Disposable disposable2 = Observable.interval(1, TimeUnit.SECONDS)
+                .subscribe();
+        Disposable disposable3 = Observable.interval(1, TimeUnit.SECONDS)
+                .subscribe();
+        
+        disposable.addAll(disposable1, disposable2, disposable3);
+		
+        if(disposable != null){
+            disposable.dispose();
+        }
+	
+	* RxLifecycle 라이브러리 활용
+		트렐로에서 출시, 옵저버블 흐름에 한줄만 추가하면 됨
+		
+		implementation 'com.trello.rxlifecycle2:rxlifecycle:2.2.2'
+		implementation 'com.trello.rxlifecycle2:rxlifecycle-android:2.2.2'
+		implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.2'
+	
+		* 활동주기에 바인딩
+			* RxAppCompatActivity 클래스를 상속 받아야함
+		
+			Observable.interval(1, TimeUnit.SECONDS)
+				.compose(bindToLifecycle()) // 액티비티의 생명주기에서 이벤트를 수신
+                .subscribe();
+				
+		* RxAppCompatActivity를 상속받지 못하면 서브젝트를 도입해 RxLifecycle 클래스를 다시 구현
+			BehaviorSubject<ActivityEvent> lifecycleSubject = BehaviorSubject.create();
+			lifecycleSubject.onNext(ActivityEvent.CREATE); // onCreate()에서
+			lifecycleSubject.onNext(ActivityEvent.DESTROY); // onDestroy()에서
+	
+	* 뷰에 바인딩
+		이 기능이 필요한 경우는 드물지만 애니메이션이나 뷰에 딜레이를 주거나 주기적인 동작에 사용될 수 있다.
+		onViewAttachedToWindow : 이 뷰는 활성화면의 일부다(액티비티에서 생성됨)
+		onViewDetachedFromWindow : 이 뷰는 화면에서 제거된다(액티비티가 파괴되거나 뷰가 프로그램에 의해 제거됨)
+		
+        Observable.interval(1, TimeUnit.SECONDS)
+                .compose(RxLifecycleAndroid.bindView(helloText)) // 뷰에 바인딩
+                .subscribe();

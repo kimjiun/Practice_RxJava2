@@ -43,6 +43,9 @@ dependencies {
     implementation 'com.pushtorefresh.storio:sqlite-annotations:1.13.0'
     implementation 'com.pushtorefresh.storio:sqlite-annotations-processor:1.13.0'
     implementation 'com.github.akarnokd:rxjava2-interop:0.13.7'
+    implementation 'com.trello.rxlifecycle2:rxlifecycle:2.2.2'
+    implementation 'com.trello.rxlifecycle2:rxlifecycle-android:2.2.2'
+    implementation 'com.trello.rxlifecycle2:rxlifecycle-components:2.2.2'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.3'
 
     implementation 'androidx.cardview:cardview:1.0.0'
