@@ -1,0 +1,56 @@
+* Twitter4J 라이브러리를 사용해 트위터 스트림에서 특정 회사의 업데이트 사항을 가져오는 주식 모니터링 앱으로 기능을 향상
+
+* 일반적인 Java 코드를 랩핑해 옵저버블로 변환하는 방법
+	- Java의 Future와 Callable로 작업 수행
+	- Emitter 인터페이스를 사용해 핫 옵저버블을 사용
+	
+* 커스텀 옵저버블을 만드는 방법
+	* 표준 Java API와의 통합
+		1. 콜러블 인터페이스는 러너블과 매우 비슷하나 값을 반환한다.
+			Observable.fromCallable(() -> someOperation());
+			작업이 오래 실행된다면 특정 스케줄러에서 옵저버블을 구독해야한다. 그렇지 않으면 현재 스레드에서 실행되고 다른 모든 작업은 차단됨
+			Observable.fromCallable(() -> longRunningOperation()).subscribeOn(Schedulers.io());
+		
+		2. Future는 일반적으로 비동기 작업의 결과를 가져와야 하는 장소에서 사용한다. 퓨처는 계산이 끝날때까지 
+			기다린 다음 .get() 메소드를 사용해 가져올 수 있는 상태가 된다. 결과를 사용할수 없는 경우, 준비될 때까지 퓨처는 차단됨
+			Observable.fromFuture(new FutureTask<>(() -> longRunningOperation()));
+			.fromFuture()는 장기 실행작업을 위한 인터페이스, 퓨처를 제공하는 코드와의 통합에 유용
+			
+	* Emitter API와 통합
+		이미터 인터페이스는 아이템이 옵저버블에 매우 세부적인 방법으로 방출되는 방식을 제어할 수 있으므로 더 강력한 구조임
+		기본적으로 옵저버블은 다음 세가지 방법으로 제어
+			1. onNext() : 옵저버블에 새 값을 제공
+			2. onError() : 내부적으로 발생한 에러 또는 예외를 알린다
+			3. onComplete() : 옵저버블에 새로운 값이 없다는 것과 안전하게 종료할 수 있다고 알려준다.
+		
+		이미터 인터페이스는 .create() 메소드로 옵저버블을 생성하면서 사용 가능.
+			Observable.<Integer>create(e ->{
+				e.onNext(1);
+				e.onNext(2);
+				e.onComplete(); // 값 제공이 끝날때마다 다음을 호출
+			});
+		
+		OnComplete 호출은 값을 방출하며 예외가 제대로 처리되지 않으면 쉽게 놓침 따라서 아래와 같이 코드를 작성
+			Observable.<Integer>create(e ->{
+				try {
+					e.onNext(returnValue());
+				}
+				catch(Exception ex){
+					e.onError(ex);
+				}
+				finally {
+					e.onComplete();
+				}
+			});
+		
+		이미터 인터페이스는 강력한 도구지만 어떤 경우에는 사용이 어렵기 떄문에 흐름이 간단하면 Callable과 .fromCallable()을 선호할 수 있다.
+		그러나 여러 값이 반환될 때마다 그리고 외부 리스너에서 값을 받아야 하는 경우 .create()를 사용하는 것이 거의 필수적임
+	
+	* 청소
+		옵저버블이 끝나면 이미터를 공급하는 데 사용된 내부 자원의 정리가 필요한 경우가 있다.
+			Observable.create(emitter -> {
+				helloText.setOnClickListener(v -> emitter.onNext(v));
+			});
+		위 옵저버블은 절대 완료되지 않지만 종료되더라도 이미터에 대한 참조는 항상 존재하기 때문에 문제가 있음
+		
+	
