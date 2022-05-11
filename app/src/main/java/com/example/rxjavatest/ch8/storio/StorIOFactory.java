@@ -1,8 +1,8 @@
-package com.example.rxjavatest.ch7.storio;
+package com.example.rxjavatest.ch8.storio;
 
 import android.content.Context;
 
-import com.example.rxjavatest.ch7.StockUpdate;
+import com.example.rxjavatest.ch8.StockUpdate;
 import com.pushtorefresh.storio.sqlite.SQLiteTypeMapping;
 import com.pushtorefresh.storio.sqlite.StorIOSQLite;
 import com.pushtorefresh.storio.sqlite.impl.DefaultStorIOSQLite;

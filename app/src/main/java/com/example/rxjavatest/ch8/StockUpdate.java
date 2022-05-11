@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch7;
+package com.example.rxjavatest.ch8;
 
 import com.example.rxjavatest.yahoo.json.YahooStockResult;
 
@@ -6,17 +6,24 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import twitter4j.Status;
+
 
 public class StockUpdate implements Serializable {
     private final String stockSymbol;
     private final BigDecimal price;
     private final Date date;
     private Integer id;
+    private final String twitterStatus;
 
-    public StockUpdate(String stockSymbol, BigDecimal price, Date date) {
+    public StockUpdate(String stockSymbol, BigDecimal price, Date date, String twitterStatus) {
+        if(stockSymbol == null) stockSymbol = "";
+        if(twitterStatus == null) twitterStatus = "";
+
         this.stockSymbol = stockSymbol;
         this.price = price;
         this.date = date;
+        this.twitterStatus = twitterStatus;
     }
 
     public String getStockSymbol() {
@@ -39,7 +46,19 @@ public class StockUpdate implements Serializable {
         this.id = id;
     }
 
+    public String getTwitterStatus() {
+        return twitterStatus;
+    }
+
     public static StockUpdate create(YahooStockResult r) {
-        return new StockUpdate(r.getSymbol(), r.getLastTradePriceOnly(), new Date());
+        return new StockUpdate(r.getSymbol(), r.getLastTradePriceOnly(), new Date(), "");
+    }
+
+    public static StockUpdate create(Status status) {
+        return new StockUpdate("", BigDecimal.ZERO, status.getCreatedAt(), status.getText());
+    }
+
+    public boolean isTwitterStatusUpdate(){
+        return !twitterStatus.isEmpty();
     }
 }

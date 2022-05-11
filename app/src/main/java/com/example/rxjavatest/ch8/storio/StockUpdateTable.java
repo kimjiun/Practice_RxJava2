@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch7.storio;
+package com.example.rxjavatest.ch8.storio;
 
 public class StockUpdateTable {
     public static final String TABLE = "stock_updates";
@@ -8,6 +8,7 @@ public class StockUpdateTable {
         static final String STOCK_SYMBOL = "stock_symbol";
         static final String PRICE = "price";
         static final String DATE = "date";
+        static final String TWITTER_STATUS = "twitter_status";
     }
 
     private StockUpdateTable() {
@@ -19,6 +20,7 @@ public class StockUpdateTable {
                 + Columns.STOCK_SYMBOL + " TEXT NOT NULL, "
                 + Columns.DATE + " LONG NOT NULL, "
                 + Columns.PRICE + " LONG NOT NULL"
+                + Columns.TWITTER_STATUS + " TEXT NULL"
                 + ");";
     }
 }

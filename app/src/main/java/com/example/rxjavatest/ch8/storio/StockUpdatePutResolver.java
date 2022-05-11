@@ -1,8 +1,8 @@
-package com.example.rxjavatest.ch7.storio;
+package com.example.rxjavatest.ch8.storio;
 
 import android.content.ContentValues;
 
-import com.example.rxjavatest.ch7.StockUpdate;
+import com.example.rxjavatest.ch8.StockUpdate;
 import com.pushtorefresh.storio.sqlite.operations.put.DefaultPutResolver;
 import com.pushtorefresh.storio.sqlite.queries.InsertQuery;
 import com.pushtorefresh.storio.sqlite.queries.UpdateQuery;
@@ -37,6 +37,7 @@ public class StockUpdatePutResolver extends DefaultPutResolver<StockUpdate> {
         contentValues.put(StockUpdateTable.Columns.STOCK_SYMBOL, entity.getStockSymbol());
         contentValues.put(StockUpdateTable.Columns.PRICE, getPrice(entity));
         contentValues.put(StockUpdateTable.Columns.DATE, getDate(entity));
+        contentValues.put(StockUpdateTable.Columns.TWITTER_STATUS, entity.getTwitterStatus());
 
         return contentValues;
     }

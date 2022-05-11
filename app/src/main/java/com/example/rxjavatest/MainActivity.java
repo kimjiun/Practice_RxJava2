@@ -13,6 +13,7 @@ import com.example.rxjavatest.ch3.Ch3_MainActivity;
 import com.example.rxjavatest.ch5.Ch5_MainActivity;
 import com.example.rxjavatest.ch6.Ch6_MainActivity;
 import com.example.rxjavatest.ch7.Ch7_MainActivity;
+import com.example.rxjavatest.ch8.Ch8_MainActivity;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -28,8 +29,8 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
-        goBtn.setOnClickListener(v -> {startActivity(new Intent(this, Ch7_MainActivity.class));});
+        goBtn.setOnClickListener(v -> {startActivity(new Intent(this, Ch8_MainActivity.class));});
 
-        startActivity(new Intent(this, Ch7_MainActivity.class));
+        startActivity(new Intent(this, Ch8_MainActivity.class));
     }
 }

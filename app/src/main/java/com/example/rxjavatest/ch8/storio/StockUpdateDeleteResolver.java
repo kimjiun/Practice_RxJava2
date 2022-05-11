@@ -1,7 +1,7 @@
-package com.example.rxjavatest.ch7.storio;
+package com.example.rxjavatest.ch8.storio;
 
 
-import com.example.rxjavatest.ch7.StockUpdate;
+import com.example.rxjavatest.ch8.StockUpdate;
 import com.pushtorefresh.storio.sqlite.operations.delete.DefaultDeleteResolver;
 import com.pushtorefresh.storio.sqlite.queries.DeleteQuery;
 

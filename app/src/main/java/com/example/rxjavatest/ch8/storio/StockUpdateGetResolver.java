@@ -1,8 +1,8 @@
-package com.example.rxjavatest.ch7.storio;
+package com.example.rxjavatest.ch8.storio;
 
 import android.database.Cursor;
 
-import com.example.rxjavatest.ch7.StockUpdate;
+import com.example.rxjavatest.ch8.StockUpdate;
 import com.pushtorefresh.storio.sqlite.operations.get.DefaultGetResolver;
 
 import java.math.BigDecimal;
@@ -15,11 +15,12 @@ public class StockUpdateGetResolver extends DefaultGetResolver<StockUpdate> {
         final long dateLong = cursor.getLong(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.DATE));
         final long priceLong = cursor.getLong(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.PRICE));
         final String stockSymbol = cursor.getString(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.STOCK_SYMBOL));
+        final String twitterStatus = cursor.getString(cursor.getColumnIndexOrThrow(StockUpdateTable.Columns.TWITTER_STATUS));
 
         Date date = getDate(dateLong);
         BigDecimal price = getPrice(priceLong);
 
-        final StockUpdate stockUpdate = new StockUpdate(stockSymbol, price, date);
+        final StockUpdate stockUpdate = new StockUpdate(stockSymbol, price, date, twitterStatus);
         stockUpdate.setId(id);
         return stockUpdate;
     }

@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch7.storio;
+package com.example.rxjavatest.ch8.storio;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch7;
+package com.example.rxjavatest.ch8;
 
 import android.text.format.DateFormat;
 import android.view.View;
@@ -25,6 +25,8 @@ public class StockUpdateViewHolder extends RecyclerView.ViewHolder {
     TextView date;
     @BindView(R.id.stock_item_price)
     TextView price;
+    @BindView(R.id.stock_item_twitter_status)
+    TextView twitterStatus;
 
     public StockUpdateViewHolder(View v) {
         super(v);
@@ -41,5 +43,22 @@ public class StockUpdateViewHolder extends RecyclerView.ViewHolder {
 
     public void setDate(Date date) {
         this.date.setText(DateFormat.format("yyyy-MM-dd hh:mm", date));
+    }
+
+    public void setTwitterStatus(String twitterStatus) {
+        this.twitterStatus.setText(twitterStatus);
+    }
+
+    public void setIsStatusUpdate(boolean twitterStatusUpdate){
+        if(twitterStatusUpdate){
+            this.twitterStatus.setVisibility(View.VISIBLE);
+            this.price.setVisibility(View.GONE);
+            this.stockSymbol.setVisibility(View.GONE);
+        }
+        else{
+            this.twitterStatus.setVisibility(View.GONE);
+            this.price.setVisibility(View.VISIBLE);
+            this.stockSymbol.setVisibility(View.VISIBLE);
+        }
     }
 }

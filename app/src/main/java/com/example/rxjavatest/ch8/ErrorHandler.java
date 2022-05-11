@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch7;
+package com.example.rxjavatest.ch8;
 
 import android.util.Log;
 

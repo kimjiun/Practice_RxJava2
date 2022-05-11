@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch7;
+package com.example.rxjavatest.ch8;
 
 
 import android.view.LayoutInflater;
@@ -28,6 +28,8 @@ public class StockDataAdapter extends RecyclerView.Adapter<StockUpdateViewHolder
         holder.setStockSymbol(stockUpdate.getStockSymbol());
         holder.setPrice(stockUpdate.getPrice());
         holder.setDate(stockUpdate.getDate());
+        holder.setTwitterStatus(stockUpdate.getTwitterStatus());
+        holder.setIsStatusUpdate(stockUpdate.isTwitterStatusUpdate());
     }
 
     @Override
@@ -38,7 +40,8 @@ public class StockDataAdapter extends RecyclerView.Adapter<StockUpdateViewHolder
     public void add(StockUpdate newStockUpdate) {
         for (StockUpdate stockUpdate : data) {
             if (stockUpdate.getStockSymbol().equals(newStockUpdate.getStockSymbol())) {
-                if (stockUpdate.getPrice().equals(newStockUpdate.getPrice())) {
+                if (stockUpdate.getPrice().equals(newStockUpdate.getPrice())
+                    && stockUpdate.getTwitterStatus().equals(newStockUpdate.getTwitterStatus())) {
                     return;
                 }
                 break;
