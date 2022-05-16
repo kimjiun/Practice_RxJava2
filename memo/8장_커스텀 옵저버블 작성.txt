@@ -61,6 +61,23 @@
 		파일 닫기, 원격 소켓 연결 닫기, 스레드 종료, 기타 등의 자원을 정리 가능
 		
 		이렇게 특별한 경우 뷰를 작업하고 있기 때문에 MainThreadDisposable을 사용하는것이 좋음
+			Observable.create(emitter -> {
+				emitter.setDisposable(new MainThreadDisposable() { // TextView와의 상호작용이 메인 안드로이드 UI 스레드에서 발생
+					@Override
+					protected void onDispose() {
+						helloText.setOnClickListener(null);
+					}
+				});
+				helloText.setOnClickListener(v -> emitter.onNext(v));
+			});
 		
-		
+
+* 리액티브 방식으로 주식에 대한 트윗 읽기
+    implementation 'org.twitter4j:twitter4j-core:4.0.7'
+    implementation 'org.twitter4j:twitter4j-stream:4.0.7'
+	
+	* 트위터 자격증명이 필요
+		컨슈머 키, 컨슈머 시크릿, 액세스 토큰, 액세스 토큰 시크릿
+
+
 	

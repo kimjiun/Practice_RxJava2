@@ -69,7 +69,6 @@
 		방출, 소비 속도가 다르면 좋지않음 / 컨슈머중 하나에서 일시적인 속도 둔화라면 문제없이 동작
 		observable.toFlowable(BackpressureStrategy.BUFFER)
 		observable.toFlowable(BackpressureStrategy.MISSING).onBackpressureBuffer()
-		
 		observable.toFlowable(BackpressureStrategy.MISSING).buffer(10) - 버퍼에 특정 수치 지정
 	
 	

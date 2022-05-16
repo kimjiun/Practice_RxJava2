@@ -88,7 +88,7 @@ public class Ch8_MainActivity extends RxAppCompatActivity {
 
         String symbols = "AAPL,GOOG,MSFT";
 
-        final Configuration configuration = new ConfigurationBuilder()
+        Configuration configuration = new ConfigurationBuilder()
                 .setDebugEnabled(true)
                 .setOAuthConsumerKey(Constant.twitter_api_consumer_key)
                 .setOAuthConsumerSecret(Constant.twitter_api_consumer_key_secret)
@@ -101,7 +101,7 @@ public class Ch8_MainActivity extends RxAppCompatActivity {
                 .language("en");
 
         Observable.merge(
-            Observable.interval(30, 5, TimeUnit.SECONDS)
+            Observable.interval(0, 5, TimeUnit.SECONDS)
                     .flatMap(
                             i -> yahooService.yqlQuery("US", "en", symbols)
                                     .toObservable()
@@ -110,7 +110,7 @@ public class Ch8_MainActivity extends RxAppCompatActivity {
                 .flatMap(Observable::fromIterable)
                 .map(StockUpdate::create),
                 observeTwitterStream(configuration, filterQuery)
-                    .sample(700, TimeUnit.MILLISECONDS)
+                    .sample(2700, TimeUnit.MILLISECONDS)
                     .map(StockUpdate::create)
         )
                 .compose(bindToLifecycle())
@@ -221,7 +221,7 @@ public class Ch8_MainActivity extends RxAppCompatActivity {
         });
     }
 
-    Observable<Status> observeTwitterStream(Configuration configuration, FilterQuery filterQuery){
+    Observable<Status> observeTwitterStream(Configuration configuration, FilterQuery filterQuery) {
         return Observable.create(emitter -> {
             final TwitterStream twitterStream = new TwitterStreamFactory(configuration).getInstance();
 
@@ -232,27 +232,23 @@ public class Ch8_MainActivity extends RxAppCompatActivity {
             StatusListener listener = new StatusListener() {
                 @Override
                 public void onStatus(Status status) {
-                    emitter.onNext(status); // 상태 없데이트 추가
+                    emitter.onNext(status);
                 }
 
                 @Override
                 public void onDeletionNotice(StatusDeletionNotice statusDeletionNotice) {
-
                 }
 
                 @Override
                 public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
-
                 }
 
                 @Override
                 public void onScrubGeo(long userId, long upToStatusId) {
-
                 }
 
                 @Override
                 public void onStallWarning(StallWarning warning) {
-
                 }
 
                 @Override
