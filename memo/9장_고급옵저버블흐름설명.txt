@@ -1,0 +1,119 @@
+* 옵저버블 벗기기
+	모든 것을 한 번의 끊김 없이 흐름으로 연결하는 것은 간단하지 않으며, 이의 경우 종종 .flatmap() 과 같은 도구 사용
+	
+	* Map을 이용해 값 변환하기
+		Observable.just(1, 2, 3)
+			.map(i -> i + 1)
+		* .map() 메소드에서는 값을 수정하지 말고 항상 새로운 값을 반환하는 것이 좋음 
+			* 따라서 아래는 좋지 않음
+			Observable.just(new Date(1), new Date(2), new Date())
+                .map(i -> {
+                    i.setTime(i.getTime() + 1);
+                    return  i;
+                })
+			
+			* 아래 접근법은 동시 수정 버그를 피하는데 도움이 되며, 디버깅과 추론을 하기 더 쉽다.
+			Observable.just(new Date(1), new Date(2), new Date())
+                .map(i -> new Date(i.getTime() + 1))
+			
+			* 값의 유형을 변경할수도 있음
+			Observable.just(new Date(1), new Date(2), new Date())
+					.map(i -> i.toString())
+		
+		* .map()은 항목을 취해 다음단계로 처리할 새 항목을 반환한다. 새로 반환된 항목은 서로 다른값, 다른 유형 또는 전혀 변경되지않은 그대로 무엇이든 가능
+	
+	* FlatMap 옵저버블
+		.flatmap()은 맵 연산이다. 하나의 값을 다른 값으로 변환한다. 그러나 방식은 조금 다름
+		
+		* Callable 인터페이스 인스턴스를 반환한다고 가정한다.
+			Observable.just("ID1", "ID2", "ID3")
+					.map(id -> Observable.fromCallable(mockHttpRequest(id)))
+					.subscribe(e -> {
+						e.subscribe(v -> log("subscribe-subscribe", v.toString()));
+					});
+			* map은 콜러블을 옵저버블로 감싸서 Observable<Observable<Date>> 형태로 값이 변환되서
+			  id값을 출력하기 위해선 두단계 subscribe()가 필요함
+		
+		* .flatmap()은 위와같은 불필요한 옵저버블을 벗긴다.
+			Observable.just("ID1", "ID2", "ID3")
+				.flatMap(id -> Observable.fromCallable(mockHttpRequest(id)))
+                .subscribe(e -> log(e.toString()));
+		
+		* .flatmap()은 결과가 옵저버블 유형이 될 것으로 기대하고 새로운 옵저버블의 값을 우리가 실제로 사용하고있는
+		  원래의 옵저버블로 벗겨내 훨씬 쉽게 사용할 수 있는 변환이다.
+	
+	* FlatMap변형
+		Single 형식을 반환하는 아이템을 flatMap에서 처리하려면 아래와 같이 toObservable()을 사용해야됬음
+			.flatMap( i -> singleTest().toObservable());
+		그러나 flatMapSingle()을 사용하면 자동으로 옵저버블 형식으로 변환해줌, toObservable()을 사용안해도 됨	
+			.flatMapSingle(i -> singleTest());
+		추가로 .flatMapMaybe() / .flatMapCompletable() / .flatMapObservable() 등이 존재
+			
+	* switchMap()
+		.flatMap()은 내부에서 생성된 옵저버블에서 모든 요소를 반환하기 위해 wait를 반환,
+		.switchMap()은 최신 값에서 생성된 최신 옵저버블의 요소만 반환한다.
+		* 다음 옵저버블이 반환되자마자 이전에 사용된 옵저버블을 종료하고 최신 옵저버블에서만 항목을 생성한다.
+		* 옵저버블에서 아이템을 받고 네트워크 요청을 시작한 경우, 두번째 아이템을이 수신되고 .switchMap()으로 첫번째 요청이 시작된경우
+		첫번째 요청은 두번째 네트워크 요청이 이뤄지기 전에 취소된다. flatMap()을 쓰면 옵저버블은 첫번째 요청이 완료된후에 두번째 요청을 시작한다.
+		
+	
+* 옵저버블의 다른 단계간 값을 전달하는 방법
+	* 본래의 값과 새 값을 함께 반환할 때가 존재 -> 옵저버블 흐름에서 여러 단계간에 정보를 전달하는 방법이 필요
+	
+	* 튜플
+		map()에서 여러값을 반환하는 문제의 해결책 중 하나, 튜플은 유한개로 정렬된 요소 목록
+		Pair - (first, second) / Triplet - (0, 1, 2) / Quartet - (0, 1, 2, 3)
+	
+		* 커스텀
+		Observable.just(new User("1"), new User("2"), new User("3"))
+                .map(user -> new UserCredentials(user, "accessToken"))
+                .subscribe(credentials -> {
+                    log(credentials.user.userId, credentials.accessTocken);
+                });
+				
+		wrapping class를 통해서 이전단계의 값을 다음단계로 전달
+
+
+* 여러 옵저버블 항목을 결합하는 방법
+	두개의 비동기 작업을 실행하고 두작업 결과를 기다린 후 다음 단계를 수행하는 경우가 존재
+	* .zip()
+		각 옵저버블을 아이템을 가져와 하나로 결합하고 새 값을 생성, 두 옵저버블이 값을 생성할때까지 기다린다.
+		-> 옵저버블 중 하나가 완료되면 자동으로 다른것의 구독을 취소한다.
+	
+	* .combineLatest() - 최신항목 결합
+		양쪽 옵저버블 모두에서 값이 생성되기를 기다리는 대신 옵저버벌 중 하나가 아이템을 내보낼때마다 새로운 값을 생성한다.
+		Three만 나오는 요소는 Observable.interval()에서 생성되기 전에 .just() 옵저버블이 완료되어서이다.
+		-> 일반적으로 디펜던시 중 하나가 변경될 떄마다 계속 새롭게 업데이트된 값을 생성해야 하는 경우 유용함
+		예) 설정창에서 스위치중 하나가 변경되면 서버에서 업데이트된 데이터를 가져오는 경우
+
+	* concat() - 스트림 연결
+		같은 유형의 두 스트림을 하나의 연속 스트림으로 병합
+		Observable.concat(
+                Observable.interval(3, TimeUnit.SECONDS),
+                Observable.just(-1L, -2L)
+        )
+		.subscribe(v -> log("subscribe", v.toString()));
+		위의 경우 interval()은 종료되지 않기 떄문에 Observable.just(-1L, -2L)는 실행되지 않음
+	
+	* merge()
+		Observable.merge(
+                Observable.interval(3, TimeUnit.SECONDS),
+                Observable.just(-1L, -2L)
+        )
+		.subscribe(v -> log("subscribe", v.toString()));
+		merge는 첫번째 옵저버블이 완료될때까지 기다리지 않기 때문에 양쪽 옵저버블 모두에서 값을 생성한다. 
+		
+	
+* 옵저버블 흐름에 있는 항목 필터링
+	지정된 조건과 일치하지 않는 특정 값을 건너뛰는데 사용한다.
+	.filter(update -> !stockDataAdapter.contains(update))
+	
+	.distinct()는 내부적으로 세트를 사용해 아이템의 존재여부를 확인한다.
+	
+	.distinctUntilChanged()는 마지막 값과 다른 경우에만 아이템을 통과시킨다.
+	
+	.groupBy() 주어진 key 함수를 통해 새로운 옵저버블 세트를 방출
+	
+	
+	
+
