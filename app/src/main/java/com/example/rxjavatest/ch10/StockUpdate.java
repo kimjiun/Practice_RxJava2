@@ -1,4 +1,4 @@
-package com.example.rxjavatest.ch9;
+package com.example.rxjavatest.ch10;
 
 import androidx.annotation.Nullable;
 

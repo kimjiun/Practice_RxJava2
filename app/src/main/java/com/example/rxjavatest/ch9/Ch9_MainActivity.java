@@ -108,22 +108,42 @@ public class Ch9_MainActivity extends RxAppCompatActivity {
                 .setOAuthAccessTokenSecret(Constant.twitter_api_access_token_secret)
                 .build();
 
+        final String[] trackingKeywords = {"Apple", "Google", "Microsoft"};
+
         final FilterQuery filterQuery = new FilterQuery()
-                .track("Apple", "Google", "Microsoft")
+                .track(trackingKeywords)
                 .language("en");
 
         Observable.merge(
             Observable.interval(0, 5, TimeUnit.SECONDS)
-                    .flatMap(
+                    .flatMapSingle(
                             i -> yahooService.yqlQuery("US", "en", symbols)
-                                    .toObservable()
                     )
                 .map(r -> r.getQuoteResponse().getResult())
                 .flatMap(Observable::fromIterable)
-                .map(StockUpdate::create),
+                .map(StockUpdate::create)
+                .groupBy(StockUpdate::getStockSymbol)
+                .flatMap(Observable::distinctUntilChanged),
                 observeTwitterStream(configuration, filterQuery)
                     .sample(2700, TimeUnit.MILLISECONDS)
                     .map(StockUpdate::create)
+                    .filter(
+                        stockUpdate -> {
+                            for(String keyword : trackingKeywords){
+                                if(stockUpdate.getTwitterStatus().contains(keyword)){
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }
+                    )
+                    .flatMapMaybe(
+                        update -> Observable.fromArray(trackingKeywords)
+                        .filter(keyword -> update.getTwitterStatus()
+                        .toLowerCase().contains(keyword.toLowerCase()))
+                        .map(keyword -> update)
+                        .firstElement()
+                    )
         )
                 .compose(bindToLifecycle())
                 .subscribeOn(Schedulers.io())
@@ -147,7 +167,6 @@ public class Ch9_MainActivity extends RxAppCompatActivity {
                                 .flatMap(Observable::fromIterable) // 데이터는 List<StockUpdate> 형식으로 반환되므로 이를 연결하기 위함
                 )
                 .observeOn(AndroidSchedulers.mainThread())
-                .filter(update -> !stockDataAdapter.contains(update))
                 .subscribe(stockUpdate -> {
                     Log.d("APP", "New update " + stockUpdate.getStockSymbol());
                     noDataAvailableView.setVisibility(View.GONE);
