@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Button;
 
 import com.example.rxjavatest.ch1.Ch1_MainActivity;
+import com.example.rxjavatest.ch11.Ch11_MainActivity;
 import com.example.rxjavatest.ch2.Ch2_MainActivity;
 import com.example.rxjavatest.ch3.Ch3_MainActivity;
 import com.example.rxjavatest.ch5.Ch5_MainActivity;
@@ -32,6 +33,6 @@ public class MainActivity extends AppCompatActivity {
 
         goBtn.setOnClickListener(v -> {startActivity(new Intent(this, Ch8_MainActivity.class));});
 
-        startActivity(new Intent(this, Ch9_MainActivity.class));
+        startActivity(new Intent(this, Ch11_MainActivity.class));
     }
 }

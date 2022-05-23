@@ -1,11 +1,9 @@
-package com.example.rxjavatest.ch10;
+package com.example.rxjavatest.ch11;
 
 import static com.example.rxjavatest.ch10.LocalItemPersistenceHandlingTransformer.addLocalPersistence;
-import static hu.akarnokd.rxjava.interop.RxJavaInterop.toV2Observable;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.util.Pair;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,20 +17,15 @@ import com.example.rxjavatest.R;
 import com.example.rxjavatest.ch10.ErrorHandler;
 import com.example.rxjavatest.ch10.StockDataAdapter;
 import com.example.rxjavatest.ch10.StockUpdate;
-import com.example.rxjavatest.ch10.storio.StockUpdateTable;
 import com.example.rxjavatest.ch10.storio.StorIOFactory;
 import com.example.rxjavatest.yahoo.RetrofitYahooServiceFactory;
 import com.example.rxjavatest.yahoo.YahooService;
-import com.pushtorefresh.storio.sqlite.queries.Query;
 import com.trello.rxlifecycle2.android.ActivityEvent;
 import com.trello.rxlifecycle2.components.support.RxAppCompatActivity;
-
-import org.javatuples.Triplet;
 
 import java.util.Date;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -47,6 +40,8 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.plugins.RxJavaPlugins;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
 import rx.subjects.BehaviorSubject;
 import twitter4j.FilterQuery;
 import twitter4j.StallWarning;
@@ -58,7 +53,7 @@ import twitter4j.TwitterStreamFactory;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
 
-public class Ch10_MainActivity extends RxAppCompatActivity {
+public class Ch11_MainActivity extends RxAppCompatActivity {
     @BindView(R.id.hello_world_salute)
     TextView helloText;
 
@@ -82,7 +77,33 @@ public class Ch10_MainActivity extends RxAppCompatActivity {
 
         RxJavaPlugins.setErrorHandler(ErrorHandler.get());
 
+        ex1();
         //setStocks();
+    }
+
+    private void ex1(){
+        Subject<Long> subject = PublishSubject.create();
+        Observable.interval(2, TimeUnit.SECONDS)
+                .take(5)
+                .doOnSubscribe((d) -> log("ORIG Subscribe"))
+                .doOnComplete(() -> log("ORIG doOnCOmplete"))
+                .subscribe(subject);
+
+        subject
+                .doOnSubscribe((d) -> log("First Subscribe"))
+                .doOnComplete(() -> log("First doOnCOmplete"))
+                .subscribe(v -> log("First:" + v));
+
+        try {
+            Thread.sleep(4100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        subject
+                .doOnSubscribe((d) -> log("Second Subscribe"))
+                .doOnComplete(() -> log("Second doOnCOmplete"))
+                .subscribe(v -> log("Second:" + v));
     }
 
     private void setStocks(){
@@ -218,7 +239,6 @@ public class Ch10_MainActivity extends RxAppCompatActivity {
                 .asRxSingle()
                 .subscribe();
     }
-
 
     Observable<Status> observeTwitterStream(Configuration configuration, FilterQuery filterQuery) {
         return Observable.create(emitter -> {
